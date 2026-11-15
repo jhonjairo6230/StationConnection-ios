@@ -17,6 +17,10 @@ que aplican).
 - CarPlay: `App/CarPlaySceneDelegate.swift` toma dependencias de
   `AppContainer.shared` (UIKit la crea sin parámetros); las plantillas viven
   en `Presentation/CarPlay/`. Nadie más usa `AppContainer.shared`.
+- Widgets: la extensión `StationConnectionWidgets/` solo lee la foto
+  (`Shared/SharedWidgetStore`); sus botones son `AudioPlaybackIntent` que se
+  ejecutan en la app por `WidgetPlaybackBridge`. Lo que use la extensión va en
+  `Shared/` (sin tipos de la app). Ver `docs/adr/0010-widgets.md`.
 - Las implementaciones concretas solo se crean en `App/AppContainer.swift`
   (todo `lazy`). Las falsas para `-uiTesting` viven en `App/UITestingSupport.swift`.
 - `Data` convierte sus errores a `StationError`.
@@ -30,7 +34,7 @@ que aplican).
 ## Proyecto de Xcode
 
 - La fuente de verdad es `project.yml` (XcodeGen). No se guardan en git ni el
-  `.xcodeproj` ni `StationConnection/Resources/Info.plist`.
+  `.xcodeproj` ni los `Info.plist` (`StationConnection/Resources/` y `StationConnectionWidgets/`).
 - Permisos y claves de `Info.plist` van en `project.yml` → `info.properties`.
 
 ## Comprobar un cambio

@@ -18,6 +18,7 @@ que aplican a una app de radio (0001–0004 y 0006), y añade los suyos.
 | [0007](0007-persistencia-json.md) | Guardar la biblioteca en archivos JSON | Nueva (DrawPad usa SwiftData) | Aceptada |
 | [0008](0008-radio-browser-desde-la-app.md) | Llamar a Radio Browser desde la app y permitir audio por http | Nueva | Aceptada |
 | [0009](0009-carplay.md) | Kit de CarPlay para apps de audio | Nueva | Aceptada |
+| [0010](0010-widgets.md) | Widgets para el teléfono y el auto (App Group + `AudioPlaybackIntent`) | Nueva | Aceptada |
 
 ## Cómo añadir un ADR
 

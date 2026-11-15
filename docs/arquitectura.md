@@ -98,8 +98,13 @@ StationConnection/
 │   ├── Home/ · Explore/ · StationDetail/ · Favorites/
 │   ├── Tuner/                       TunerViewModel, TunerScreen, estática
 │   ├── CarPlay/CarPlayInterface.swift Plantillas de CarPlay (Favoritas, Recientes, Populares)
+│   ├── Widgets/                     WidgetSync (publica la foto) y WidgetPlaybackActions
 │   └── Root/RootView.swift          Pestañas + barra del reproductor
 └── Resources/Assets.xcassets        Ícono, carátula para "Reproduciendo", colores
+
+Shared/                              Lo compilan la app y la extensión de widgets:
+                                     WidgetSnapshot, SharedWidgetStore, intents ▶/■
+StationConnectionWidgets/            Extensión: widgets Sonando y Favoritas
 
 StationConnectionTests/
 ├── Doubles/                         Directorio, audio, controles y estática falsos
@@ -277,14 +282,42 @@ Requiere el permiso `carplay-audio` (cuenta de pago); con Sideloadly la app no
 aparece en el auto, pero "Reproduciendo" y ⏮/⏭ sí funcionan. Ver
 [ADR 0009](adr/0009-carplay.md).
 
-## 10. Pruebas
+## 10. Widgets (teléfono y auto)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant P as PlayerViewModel / LibraryViewModel
+    participant S as WidgetSync
+    participant G as App Group (SharedWidgetStore)
+    participant W as Widget (extensión)
+    actor U as Usuario
+    participant I as AudioPlaybackIntent
+    participant A as WidgetPlaybackActions
+
+    P-->>S: cambia la emisora, el estado, la canción o las favoritas
+    S->>S: WidgetSnapshot.make (¿cambió?)
+    S->>G: save(foto)
+    S->>W: WidgetCenter.reloadAllTimelines()
+    W->>G: load() → pinta
+    U->>W: toca ▶/■ o una favorita
+    W->>I: Button(intent:)
+    I->>A: iOS lo ejecuta dentro de la app (WidgetPlaybackBridge)
+    A->>P: play / toggle
+```
+
+El widget pequeño aparece también en **CarPlay desde iOS 26**. Sin App Group
+(firma gratuita), la app no publica la foto y el widget muestra un texto de
+respaldo, pero sus botones funcionan. Ver [ADR 0010](adr/0010-widgets.md).
+
+## 11. Pruebas
 
 | Qué | Dónde | Cómo |
 | --- | ----- | ---- |
 | Lógica pura y casos de uso | `StationConnectionTests/Domain` | Sin dobles o con repositorios en memoria. |
 | Radio Browser | `StationConnectionTests/Data` | `StubURLProtocol` responde sin red (espejos, 4xx, caché). |
 | Repositorio JSON | `StationConnectionTests/Data` | Carpeta temporal. |
-| ViewModels | `StationConnectionTests/Presentation` | `FakeAudioPlayer`, `FakeMediaControls`, `FakeNoiseGenerator`, reloj inyectado. |
+| ViewModels y widgets | `StationConnectionTests/Presentation` | `FakeAudioPlayer`, `FakeMediaControls`, `FakeNoiseGenerator`, reloj inyectado; `UserDefaults` temporal para el App Group. |
 | Interfaz | `StationConnectionUITests` | La app real con `-uiTesting` (sin red ni audio). |
 
 Los adaptadores de AVFoundation y MediaPlayer no tienen pruebas automáticas:

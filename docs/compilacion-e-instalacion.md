@@ -84,6 +84,13 @@ sequenceDiagram
 | Caduca a los **7 días** | Reinstala con Sideloadly. Tus favoritas se conservan si no desinstalas. |
 | **3 apps** así a la vez | Por dispositivo (DrawPad y StationConnection cuentan). |
 | **Sin permisos especiales** | iOS descarta el de **CarPlay** ([ADR 0009](adr/0009-carplay.md)). Con cuenta de pago (99 USD/año) y el permiso de Apple, la app aparecería en la pantalla del auto. |
+| **Widgets** | La extensión usa un segundo identificador (`….widgets`); los Apple ID gratuitos tienen un cupo semanal de identificadores. Si la firma no incluye el App Group, el widget muestra "▶ retoma tu última emisora" en vez de la emisora, pero sus botones funcionan ([ADR 0010](adr/0010-widgets.md)). |
+
+### Añadir los widgets
+
+1. En la pantalla de inicio, mantén pulsado un espacio vacío → **Editar** → **Añadir widget**.
+2. Busca **StationConnection** y elige "Sonando" (pequeño) o "Favoritas" (mediano).
+3. En el auto (iOS 26+): **Ajustes → General → CarPlay → tu auto → Widgets** y activa "Sonando".
 
 ## 6. Problemas frecuentes
 

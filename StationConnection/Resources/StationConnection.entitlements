@@ -7,5 +7,11 @@
 	     Ver docs/adr/0009-carplay.md -->
 	<key>com.apple.developer.carplay-audio</key>
 	<true/>
+	<!-- Contenedor compartido con la extensión de widgets (la "foto" de lo que
+	     suena). Ver docs/adr/0010-widgets.md -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.jhonjairo6230.stationconnection</string>
+	</array>
 </dict>
 </plist>

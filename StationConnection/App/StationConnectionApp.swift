@@ -10,6 +10,12 @@ struct StationConnectionApp: App {
     /// Compartido con la escena de CarPlay: mismo reproductor y misma biblioteca.
     private let container = AppContainer.shared
 
+    init() {
+        // Antes que nada: iOS puede abrir la app en segundo plano solo para
+        // ejecutar el botón de un widget, sin mostrar ninguna pantalla.
+        container.registerWidgetActions()
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView(

@@ -63,6 +63,29 @@ final class AppContainer {
         noise: noiseGenerator
     )
 
+    // MARK: - Widgets
+
+    /// Publica la foto que leen los widgets (sin App Group, no hace nada).
+    private(set) lazy var widgetSync = WidgetSync(
+        player: player,
+        library: library,
+        store: isUITesting ? SharedWidgetStore(defaults: nil) : SharedWidgetStore.live()
+    )
+
+    /// Conecta los botones de los widgets (`AudioPlaybackIntent`) con el reproductor.
+    /// Se llama al arrancar, también cuando iOS abre la app en segundo plano
+    /// solo para ejecutar un intent.
+    func registerWidgetActions() {
+        let actions = WidgetPlaybackActions(
+            player: player,
+            library: library,
+            getStations: GetStationsUseCase(directory: directory)
+        )
+        WidgetPlaybackBridge.playHandler = { stationID in await actions.play(stationID: stationID) }
+        WidgetPlaybackBridge.toggleHandler = { actions.toggle() }
+        widgetSync.start()
+    }
+
     /// Para CarPlay (lista de Populares).
     var searchStations: SearchStationsUseCase { SearchStationsUseCase(directory: directory) }
 

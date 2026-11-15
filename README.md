@@ -28,6 +28,9 @@ Sideloadly.
 - **CarPlay:** pestañas Favoritas, Recientes y Populares. Necesita el permiso
   `carplay-audio` de Apple (cuenta de pago); con Sideloadly la app suena por
   CarPlay en "Reproduciendo" pero no muestra su ícono ([ADR 0009](docs/adr/0009-carplay.md)).
+- **Widgets:** "Sonando" (inicio, pantalla de bloqueo y **CarPlay desde
+  iOS 26**, sin permiso especial) y "Favoritas" (cuatro favoritas a un toque).
+  Ver [ADR 0010](docs/adr/0010-widgets.md).
 - Ícono de radio retro cromado; la carátula de "Reproduciendo" usa el ícono
   cuando la emisora no tiene logo.
 
