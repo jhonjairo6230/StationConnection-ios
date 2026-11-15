@@ -99,7 +99,7 @@ StationConnection/
 │   ├── Tuner/                       TunerViewModel, TunerScreen, estática
 │   ├── CarPlay/CarPlayInterface.swift Plantillas de CarPlay (Favoritas, Recientes, Populares)
 │   ├── Widgets/                     WidgetSync (publica la foto) y WidgetPlaybackActions
-│   ├── Siri/PlayFavoritesIntent.swift "Pon mis favoritas" (App Shortcuts)
+│   ├── Siri/PlayFavoritesIntent.swift "Mis favoritas" (App Shortcuts)
 │   └── Root/RootView.swift          Pestañas + barra del reproductor
 └── Resources/Assets.xcassets        Ícono, carátula para "Reproduciendo", colores
 
@@ -311,9 +311,9 @@ El widget pequeño aparece también en **CarPlay desde iOS 26**. Sin App Group
 (firma gratuita), la app no publica la foto y el widget muestra un texto de
 respaldo, pero sus botones funcionan. Ver [ADR 0010](adr/0010-widgets.md).
 
-Siri usa el mismo puente: "Pon mis favoritas en StationConnection" →
+Siri usa el mismo puente: "Mis favoritas de StationConnection" →
 `PlayFavoritesIntent` → `WidgetPlaybackActions.playFavorites()`. Ver
-[ADR 0011](adr/0011-siri-favoritas.md).
+[ADR 0011](adr/0011-siri-favoritas.md) y [ADR 0012](adr/0012-frases-de-siri.md).
 
 ## 11. Pruebas
 

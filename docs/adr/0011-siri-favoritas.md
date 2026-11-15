@@ -1,6 +1,6 @@
 # 0011. Poner las favoritas con Siri
 
-- **Estado:** Aceptada
+- **Estado:** Aceptada (las frases las reemplaza el [ADR 0012](0012-frases-de-siri.md))
 - **Fecha:** 2026-11-15
 - **Origen:** nueva (pedido del autor: abrir las favoritas con Siri, sobre todo en el auto).
 
