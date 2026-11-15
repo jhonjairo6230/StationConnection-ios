@@ -11,6 +11,10 @@ import Foundation
 /// interfaz lo pide.
 @MainActor
 final class AppContainer {
+    /// La instancia de la app. La usan los puntos de entrada que crea UIKit sin
+    /// pasarles nada (la escena de CarPlay); el resto recibe sus dependencias.
+    static let shared = AppContainer()
+
     /// Cuando las pruebas de interfaz arrancan la app con `-uiTesting`, se usan
     /// datos falsos y almacenamiento en memoria: sin red ni audio reales.
     let isUITesting: Bool
@@ -58,6 +62,9 @@ final class AppContainer {
         player: player,
         noise: noiseGenerator
     )
+
+    /// Para CarPlay (lista de Populares).
+    var searchStations: SearchStationsUseCase { SearchStationsUseCase(directory: directory) }
 
     func makeStationDetail(_ station: Station) -> StationDetailViewModel {
         StationDetailViewModel(station: station, search: SearchStationsUseCase(directory: directory))

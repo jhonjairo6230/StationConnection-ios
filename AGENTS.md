@@ -14,6 +14,9 @@ que aplican).
   `MediaPlayerControls`, `StaticNoiseGenerator` y `AirPlayButton`. Los
   ViewModels usan los protocolos `AudioPlayer`, `SystemMediaControls` y
   `NoiseGenerator`.
+- CarPlay: `App/CarPlaySceneDelegate.swift` toma dependencias de
+  `AppContainer.shared` (UIKit la crea sin parámetros); las plantillas viven
+  en `Presentation/CarPlay/`. Nadie más usa `AppContainer.shared`.
 - Las implementaciones concretas solo se crean en `App/AppContainer.swift`
   (todo `lazy`). Las falsas para `-uiTesting` viven en `App/UITestingSupport.swift`.
 - `Data` convierte sus errores a `StationError`.

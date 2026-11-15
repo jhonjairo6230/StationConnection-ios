@@ -25,6 +25,9 @@ Sideloadly.
 - **Mis estaciones:** favoritas ordenables (arrastrar o A–Z), respaldo en
   Archivos/iCloud **compatible con la web**.
 - **Temporizador para dormir** (15–90 min, con fundido) y **AirPlay**.
+- **CarPlay:** pestañas Favoritas, Recientes y Populares. Necesita el permiso
+  `carplay-audio` de Apple (cuenta de pago); con Sideloadly la app suena por
+  CarPlay en "Reproduciendo" pero no muestra su ícono ([ADR 0009](docs/adr/0009-carplay.md)).
 - Ícono de radio retro cromado; la carátula de "Reproduciendo" usa el ícono
   cuando la emisora no tiene logo.
 

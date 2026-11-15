@@ -7,7 +7,8 @@ import SwiftUI
 /// compartidos (reproductor y biblioteca) van por el entorno.
 @main
 struct StationConnectionApp: App {
-    private let container = AppContainer()
+    /// Compartido con la escena de CarPlay: mismo reproductor y misma biblioteca.
+    private let container = AppContainer.shared
 
     var body: some Scene {
         WindowGroup {

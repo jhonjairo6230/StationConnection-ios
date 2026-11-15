@@ -75,7 +75,8 @@ Reglas (también en `AGENTS.md`):
 StationConnection/
 ├── App/
 │   ├── StationConnectionApp.swift   Punto de entrada (@main)
-│   ├── AppContainer.swift           Crea y conecta las dependencias
+│   ├── AppContainer.swift           Crea y conecta las dependencias (shared)
+│   ├── CarPlaySceneDelegate.swift   Escena de CarPlay
 │   └── UITestingSupport.swift       Directorio, audio y repos falsos (-uiTesting)
 ├── Domain/
 │   ├── Entities/                    Station, Song, Tag, Country, StationQuery
@@ -96,6 +97,7 @@ StationConnection/
 │   │                                AirPlay, temporizador, enlaces de música
 │   ├── Home/ · Explore/ · StationDetail/ · Favorites/
 │   ├── Tuner/                       TunerViewModel, TunerScreen, estática
+│   ├── CarPlay/CarPlayInterface.swift Plantillas de CarPlay (Favoritas, Recientes, Populares)
 │   └── Root/RootView.swift          Pestañas + barra del reproductor
 └── Resources/Assets.xcassets        Ícono, carátula para "Reproduciendo", colores
 
@@ -259,7 +261,23 @@ formato de la web: `{ app, version, exportedAt, favorites }`. Al importar,
 cada emisora se **vuelve a sanear** (`FavoritesBackup.sanitize`): un archivo es
 un dato no confiable.
 
-## 9. Pruebas
+## 9. CarPlay
+
+```mermaid
+flowchart LR
+    car["Auto con CarPlay"] --> scene["CarPlaySceneDelegate<br/>(UIKit la crea)"]
+    scene --> shared["AppContainer.shared"]
+    shared --> ui["CarPlayInterface"]
+    ui --> tabs["CPTabBarTemplate<br/>Favoritas · Recientes · Populares"]
+    tabs -- "elige emisora" --> play["player.play(emisora, from: lista)"]
+    play --> np["CPNowPlayingTemplate<br/>(lee MPNowPlayingInfoCenter)"]
+```
+
+Requiere el permiso `carplay-audio` (cuenta de pago); con Sideloadly la app no
+aparece en el auto, pero "Reproduciendo" y ⏮/⏭ sí funcionan. Ver
+[ADR 0009](adr/0009-carplay.md).
+
+## 10. Pruebas
 
 | Qué | Dónde | Cómo |
 | --- | ----- | ---- |
