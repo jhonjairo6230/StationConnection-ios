@@ -3,6 +3,9 @@ import Observation
 
 /// Una banda del dial: las emisoras de un género o de un país.
 enum TunerBand: Hashable {
+    /// Cuántas emisoras se reparten en el dial.
+    static let size = 30
+
     case tag(String)
     case country(code: String, name: String)
 
@@ -15,8 +18,8 @@ enum TunerBand: Hashable {
 
     var query: StationQuery {
         switch self {
-        case let .tag(name): return StationQuery(tag: name, order: .popular, limit: TunerViewModel.bandSize)
-        case let .country(code, _): return StationQuery(countryCode: code, order: .popular, limit: TunerViewModel.bandSize)
+        case let .tag(name): return StationQuery(tag: name, order: .popular, limit: Self.size)
+        case let .country(code, _): return StationQuery(countryCode: code, order: .popular, limit: Self.size)
         }
     }
 }
@@ -31,8 +34,6 @@ enum TunerBand: Hashable {
 @MainActor
 @Observable
 final class TunerViewModel {
-    static let bandSize = 30
-
     private(set) var band: TunerBand = .tag("pop")
     private(set) var stations: [Station] = []
     private(set) var loadState: LoadState<Void> = .idle

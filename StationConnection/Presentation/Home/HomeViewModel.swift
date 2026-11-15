@@ -27,29 +27,35 @@ final class HomeViewModel {
     }
 
     /// Vuelve a pedir todo (deslizar para actualizar o "Reintentar").
+    /// Las cuatro peticiones van en paralelo.
     func reload() async {
-        async let popular: Void = load(.popular, into: \.popular)
-        async let trending: Void = load(.trending, into: \.trending)
-        async let voted: Void = load(.votes, into: \.topVoted)
-        async let tags: Void = loadTags()
-        _ = await (popular, trending, voted, tags)
+        if popular.value == nil { popular = .loading }
+        if trending.value == nil { trending = .loading }
+        if topVoted.value == nil { topVoted = .loading }
+        if tags.value == nil { tags = .loading }
+        async let popularResult = fetch(.popular)
+        async let trendingResult = fetch(.trending)
+        async let votedResult = fetch(.votes)
+        async let tagsResult = fetchTags()
+        popular = await popularResult
+        trending = await trendingResult
+        topVoted = await votedResult
+        tags = await tagsResult
     }
 
-    private func load(_ order: StationOrder, into keyPath: ReferenceWritableKeyPath<HomeViewModel, LoadState<[Station]>>) async {
-        if self[keyPath: keyPath].value == nil { self[keyPath: keyPath] = .loading }
+    private func fetch(_ order: StationOrder) async -> LoadState<[Station]> {
         do {
-            self[keyPath: keyPath] = .loaded(try await search.execute(StationQuery(order: order, limit: 18)))
+            return .loaded(try await search.execute(StationQuery(order: order, limit: 18)))
         } catch {
-            self[keyPath: keyPath] = .failed(error.userMessage)
+            return .failed(error.userMessage)
         }
     }
 
-    private func loadTags() async {
-        if tags.value == nil { tags = .loading }
+    private func fetchTags() async -> LoadState<[Tag]> {
         do {
-            tags = .loaded(Array(try await getTags.execute().prefix(24)))
+            return .loaded(Array(try await getTags.execute().prefix(24)))
         } catch {
-            tags = .failed(error.userMessage)
+            return .failed(error.userMessage)
         }
     }
 }
