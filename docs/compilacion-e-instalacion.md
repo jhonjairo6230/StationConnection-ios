@@ -52,6 +52,7 @@ sequenceDiagram
 | `xcodegen generate` | El `.xcodeproj` no está en git; se crea desde `project.yml`. |
 | `scripts/pick_simulator.py iPhone` | Los nombres de simuladores cambian con cada Xcode; el script elige un iPhone que exista. |
 | `CODE_SIGNING_ALLOWED=NO` | En el runner no hay certificados de Apple. La firma la hace Sideloadly. |
+| Firma ad hoc (`codesign -s -`) | Incrusta los permisos (`*.entitlements`) en el binario para que Sideloadly los vea al volver a firmar. Sin esto, el `.ipa` no lleva ninguno. |
 | `Payload/` + `zip` | Un `.ipa` es un `.zip` con la app dentro de `Payload`. |
 
 ## 3. Preparar Windows y el iPhone (una sola vez)
@@ -83,7 +84,7 @@ sequenceDiagram
 | ------ | ------------- |
 | Caduca a los **7 días** | Reinstala con Sideloadly. Tus favoritas se conservan si no desinstalas. |
 | **3 apps** así a la vez | Por dispositivo (DrawPad y StationConnection cuentan). |
-| **Sin permisos especiales** | iOS descarta el de **CarPlay** ([ADR 0009](adr/0009-carplay.md)). Con cuenta de pago (99 USD/año) y el permiso de Apple, la app aparecería en la pantalla del auto. |
+| **Sin permisos especiales** | La app **no sale en la lista de apps de CarPlay**: el permiso `carplay-audio` solo lo concede Apple, a pedido, a cuentas de pago (99 USD/año). Ningún cambio de código lo evita ([ADR 0009](adr/0009-carplay.md)). El audio, "Reproduciendo" y ⏮/⏭ sí funcionan en el auto. |
 | **Widgets** | La extensión usa un segundo identificador (`….widgets`); los Apple ID gratuitos tienen un cupo semanal de identificadores. Si la firma no incluye el App Group, el widget muestra "▶ retoma tu última emisora" en vez de la emisora, pero sus botones funcionan ([ADR 0010](adr/0010-widgets.md)). |
 
 ### Añadir los widgets
@@ -100,4 +101,5 @@ sequenceDiagram
 | La app no abre tras instalar | Activa el **Modo de desarrollador** y **Confía** en tu Apple ID. |
 | "No se puede verificar la app" | Caducó la firma de 7 días: reinstala. |
 | El workflow falla en "Pruebas" | El paso "Errores de compilación o pruebas" resume qué falló. |
+| La app no sale en CarPlay | Esperado con Apple ID gratuito (ver arriba). Con cuenta de pago: pide el permiso en developer.apple.com/carplay y firma con un perfil que lo incluya; el `.ipa` ya lleva el permiso incrustado. |
 | Una emisora no suena | Puede usar un formato que `AVPlayer` no soporta o estar caída: prueba otra. |

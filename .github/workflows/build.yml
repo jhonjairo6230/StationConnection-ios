@@ -76,6 +76,22 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY=""
 
+      - name: Incrustar permisos (entitlements) con firma ad hoc
+        run: |
+          # Sin firma, el binario no lleva sus permisos (CarPlay, App Group) y
+          # Sideloadly no tiene de dónde leerlos al volver a firmar. Una firma
+          # ad hoc ("-") los incrusta sin necesitar certificados.
+          # Ver docs/compilacion-e-instalacion.md
+          APP=build/device/Build/Products/Release-iphoneos/StationConnection.app
+          shopt -s nullglob
+          for EXT in "$APP"/PlugIns/*.appex; do
+            NAME=$(basename "$EXT" .appex)
+            codesign --force --sign - --timestamp=none --entitlements "$NAME/$NAME.entitlements" "$EXT"
+          done
+          codesign --force --sign - --timestamp=none \
+            --entitlements StationConnection/Resources/StationConnection.entitlements "$APP"
+          codesign -d --entitlements - --xml "$APP" | plutil -p -
+
       - name: Empaquetar .ipa
         run: |
           # Un .ipa es un .zip con la app dentro de una carpeta "Payload".
