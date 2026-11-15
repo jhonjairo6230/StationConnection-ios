@@ -1,0 +1,32 @@
+import Foundation
+
+/// Estado de algo que se carga de la red.
+enum LoadState<Value> {
+    case idle
+    case loading
+    case loaded(Value)
+    case failed(String)
+
+    var value: Value? {
+        if case let .loaded(value) = self { return value }
+        return nil
+    }
+
+    var isLoading: Bool {
+        if case .loading = self { return true }
+        return false
+    }
+
+    /// Mensaje de error, si lo hay.
+    var errorMessage: String? {
+        if case let .failed(message) = self { return message }
+        return nil
+    }
+}
+
+extension Error {
+    /// Texto en español para mostrar al usuario.
+    var userMessage: String {
+        (self as? LocalizedError)?.errorDescription ?? "Ocurrió un error inesperado."
+    }
+}
