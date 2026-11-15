@@ -1,0 +1,94 @@
+# Compila StationConnection en un Mac de GitHub y publica un .ipa SIN firmar.
+# Explicación paso a paso: docs/compilacion-e-instalacion.md
+name: Compilar IPA
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - "feature/**"
+      - "release/**"
+      - "hotfix/**"
+      - "backport/**"
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Pruebas e IPA
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Versión de Xcode
+        run: xcodebuild -version
+
+      - name: Instalar XcodeGen
+        run: brew install xcodegen
+
+      - name: Generar StationConnection.xcodeproj
+        run: xcodegen generate
+
+      - name: Pruebas unitarias y de interfaz (simulador de iPhone)
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 scripts/pick_simulator.py iPhone)
+          echo "Simulador: $UDID"
+          mkdir -p build
+          set -o pipefail
+          xcodebuild test \
+            -project StationConnection.xcodeproj \
+            -scheme StationConnection \
+            -destination "id=$UDID" \
+            -derivedDataPath build/tests \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee build/test.log | grep -E "error:|warning: .*(StationConnection)|Test Case .* (passed|failed)|Executed|\*\* TEST" || true
+          grep -q "\*\* TEST SUCCEEDED \*\*" build/test.log
+
+      - name: Errores de compilación o pruebas (si falla)
+        if: failure()
+        run: |
+          # Resumen legible de lo que falló, para no buscar en miles de líneas.
+          grep -nE "error:|failed|Fatal|crash" build/test.log | head -200 || true
+          shopt -s nullglob
+          for report in ~/Library/Logs/DiagnosticReports/StationConnection*.ips; do
+            echo "::group::$report"
+            head -c 20000 "$report"
+            echo "::endgroup::"
+          done
+
+      - name: Compilar para iPhone y iPad (sin firmar)
+        run: |
+          xcodebuild build \
+            -project StationConnection.xcodeproj \
+            -scheme StationConnection \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -derivedDataPath build/device \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Empaquetar .ipa
+        run: |
+          # Un .ipa es un .zip con la app dentro de una carpeta "Payload".
+          mkdir -p build/ipa/Payload
+          cp -R build/device/Build/Products/Release-iphoneos/StationConnection.app build/ipa/Payload/
+          cd build/ipa
+          zip -qry StationConnection-unsigned.ipa Payload
+          ls -lh StationConnection-unsigned.ipa
+
+      - name: Publicar .ipa
+        uses: actions/upload-artifact@v4
+        with:
+          name: StationConnection-ipa
+          path: build/ipa/StationConnection-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 30
