@@ -2,6 +2,7 @@
 *.xcodeproj
 *.xcworkspace
 StationConnection/Resources/Info.plist
+StationConnectionWidgets/Info.plist
 
 # Xcode
 build/
