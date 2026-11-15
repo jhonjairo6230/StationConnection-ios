@@ -91,6 +91,7 @@ struct NowPlayingSheet: View {
         .foregroundStyle(target == nil ? Theme.muted.opacity(0.4) : Theme.foreground)
         .disabled(target == nil)
         .accessibilityLabel(target.map { "\(label): \($0.name)" } ?? label)
+        .accessibilityIdentifier(direction == .next ? "nowPlayingNext" : "nowPlayingPrevious")
     }
 
     private func shareText(_ station: Station) -> String {

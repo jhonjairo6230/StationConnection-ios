@@ -128,7 +128,6 @@ struct TunerScreen: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 12).fill(Color(hex: 0x0F1A12)))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(.black.opacity(0.6)))
-        .accessibilityElement(children: .combine)
     }
 
     private var songText: String {
