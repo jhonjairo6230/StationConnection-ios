@@ -164,4 +164,25 @@ final class WidgetTests: XCTestCase {
 
         XCTAssertEqual(player.station, .fixture(5))
     }
+
+    // MARK: - Siri
+
+    func testSiriPlaysTheFavoritesInOrder() {
+        library = makeLibrary(favorites: makeStations([3, 1, 2]))
+        let player = makePlayer()
+        let actions = WidgetPlaybackActions(player: player, library: library, getStations: GetStationsUseCase(directory: directory))
+
+        XCTAssertTrue(actions.playFavorites())
+
+        XCTAssertEqual(player.station, .fixture(3))
+        XCTAssertEqual(player.queue, makeStations([3, 1, 2]))
+    }
+
+    func testSiriWithoutFavoritesDoesNothing() {
+        let player = makePlayer()
+        let actions = WidgetPlaybackActions(player: player, library: library, getStations: GetStationsUseCase(directory: directory))
+
+        XCTAssertFalse(actions.playFavorites())
+        XCTAssertNil(player.station)
+    }
 }

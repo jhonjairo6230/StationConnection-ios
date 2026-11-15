@@ -39,7 +39,7 @@ struct TogglePlaybackIntent: AudioPlaybackIntent {
     }
 }
 
-/// Puente entre los intents (compartidos) y el reproductor (solo en la app).
+/// Puente entre los intents (widgets y Siri) y el reproductor (solo en la app).
 ///
 /// La app registra aquí sus acciones al arrancar (`AppContainer`). En la
 /// extensión de widgets queda vacío: los `AudioPlaybackIntent` nunca se
@@ -48,6 +48,8 @@ struct TogglePlaybackIntent: AudioPlaybackIntent {
 enum WidgetPlaybackBridge {
     static var playHandler: (@MainActor (String) async -> Void)?
     static var toggleHandler: (@MainActor () -> Void)?
+    /// Siri: devuelve `false` si no hay favoritas.
+    static var playFavoritesHandler: (@MainActor () -> Bool)?
 
     static func play(stationID: String) async {
         await playHandler?(stationID)
@@ -55,5 +57,9 @@ enum WidgetPlaybackBridge {
 
     static func toggle() {
         toggleHandler?()
+    }
+
+    static func playFavorites() -> Bool {
+        playFavoritesHandler?() ?? false
     }
 }

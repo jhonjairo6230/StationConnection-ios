@@ -1,6 +1,6 @@
 import Foundation
 
-/// Lo que hacen los botones de los widgets, ya dentro de la app.
+/// Lo que hacen los botones de los widgets y los atajos de Siri, ya dentro de la app.
 ///
 /// Los intents (`PlayStationIntent`, `TogglePlaybackIntent`) llegan por
 /// `WidgetPlaybackBridge`; `AppContainer` conecta el puente con este tipo.
@@ -32,5 +32,13 @@ struct WidgetPlaybackActions {
         } else if let favorite = library.favorites.first {
             player.play(favorite, from: library.favorites)
         }
+    }
+
+    /// Siri: suena la primera favorita y las demás quedan como cola de ⏮/⏭.
+    /// - Returns: `false` si no hay favoritas.
+    func playFavorites() -> Bool {
+        guard let first = library.favorites.first else { return false }
+        player.play(first, from: library.favorites)
+        return true
     }
 }

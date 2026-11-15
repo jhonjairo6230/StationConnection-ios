@@ -72,7 +72,7 @@ final class AppContainer {
         store: isUITesting ? SharedWidgetStore(defaults: nil) : SharedWidgetStore.live()
     )
 
-    /// Conecta los botones de los widgets (`AudioPlaybackIntent`) con el reproductor.
+    /// Conecta los botones de los widgets y Siri (`AudioPlaybackIntent`) con el reproductor.
     /// Se llama al arrancar, también cuando iOS abre la app en segundo plano
     /// solo para ejecutar un intent.
     func registerWidgetActions() {
@@ -83,6 +83,7 @@ final class AppContainer {
         )
         WidgetPlaybackBridge.playHandler = { stationID in await actions.play(stationID: stationID) }
         WidgetPlaybackBridge.toggleHandler = { actions.toggle() }
+        WidgetPlaybackBridge.playFavoritesHandler = { actions.playFavorites() }
         widgetSync.start()
     }
 

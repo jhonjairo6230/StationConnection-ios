@@ -31,6 +31,8 @@ Sideloadly.
 - **Widgets:** "Sonando" (inicio, pantalla de bloqueo y **CarPlay desde
   iOS 26**, sin permiso especial) y "Favoritas" (cuatro favoritas a un toque).
   Ver [ADR 0010](docs/adr/0010-widgets.md).
+- **Siri:** "Oye Siri, pon mis favoritas en StationConnection", también en
+  el auto ([ADR 0011](docs/adr/0011-siri-favoritas.md)).
 - Ícono de radio retro cromado; la carátula de "Reproduciendo" usa el ícono
   cuando la emisora no tiene logo.
 
