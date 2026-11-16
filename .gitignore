@@ -1,0 +1,17 @@
+# Proyecto generado por XcodeGen (la fuente de verdad es project.yml)
+*.xcodeproj
+*.xcworkspace
+StationConnection/Resources/Info.plist
+StationConnectionWidgets/Info.plist
+
+# Xcode
+build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.ipa
+Payload/
+
+# Sistema
+.DS_Store
+Thumbs.db

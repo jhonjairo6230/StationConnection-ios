@@ -1,0 +1,135 @@
+# Definición del proyecto para XcodeGen.
+# El .xcodeproj NO se guarda en git: se genera con `xcodegen generate`
+# (en el CI de GitHub o en un Mac). Ver docs/adr/0004-compilar-sin-mac.md.
+name: StationConnection
+
+options:
+  bundleIdPrefix: com.jhonjairo6230
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  # Idioma base español: Siri reconoce las frases de los atajos en este idioma.
+  developmentLanguage: es
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+targets:
+  StationConnection:
+    type: application
+    platform: iOS
+    sources:
+      - path: StationConnection
+      # Foto y botones de los widgets: los compilan la app y la extensión.
+      - path: Shared
+    dependencies:
+      # Mete la extensión de widgets dentro de la app (PlugIns/).
+      - target: StationConnectionWidgets
+    info:
+      path: StationConnection/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: StationConnection
+        CFBundleDevelopmentRegion: es
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        # La radio sigue sonando con la pantalla bloqueada o en otra app.
+        UIBackgroundModes:
+          - audio
+        # Muchas emisoras transmiten por http. Solo se permite para audio y
+        # video (AVPlayer); el resto de conexiones sigue exigiendo https.
+        # Ver docs/adr/0008-radio-browser-desde-la-app.md
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoadsForMedia: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIApplicationSupportsIndirectInputEvents: true
+        # Escena de CarPlay (plantillas de audio). La de la app la crea SwiftUI.
+        # Ver docs/adr/0009-carplay.md
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+          UISceneConfigurations:
+            CPTemplateApplicationSceneSessionRoleApplication:
+              - UISceneClassName: CPTemplateApplicationScene
+                UISceneConfigurationName: CarPlay
+                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).CarPlaySceneDelegate
+        UIUserInterfaceStyle: Dark
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jhonjairo6230.stationconnection
+        TARGETED_DEVICE_FAMILY: "1,2" # iPhone y iPad
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_ENTITLEMENTS: StationConnection/Resources/StationConnection.entitlements
+
+  # Widgets de inicio, pantalla de bloqueo y CarPlay (iOS 26).
+  # Ver docs/adr/0010-widgets.md
+  StationConnectionWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: StationConnectionWidgets
+      - path: Shared
+    info:
+      path: StationConnectionWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: StationConnection
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jhonjairo6230.stationconnection.widgets
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_ENTITLEMENTS: StationConnectionWidgets/StationConnectionWidgets.entitlements
+        SKIP_INSTALL: YES
+
+  StationConnectionTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: StationConnectionTests
+    dependencies:
+      - target: StationConnection
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1,2"
+
+  StationConnectionUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: StationConnectionUITests
+    dependencies:
+      - target: StationConnection
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1,2"
+
+schemes:
+  StationConnection:
+    build:
+      targets:
+        StationConnection: all
+        StationConnectionTests: [test]
+        StationConnectionUITests: [test]
+    test:
+      config: Debug
+      targets:
+        - StationConnectionTests
+        - StationConnectionUITests
