@@ -37,7 +37,6 @@ struct FavoritesWidgetView: View {
                     Image("AppArtwork").resizable().scaledToFit().frame(width: 40).clipShape(RoundedRectangle(cornerRadius: 10))
                 }
                 Spacer()
-                ToggleButton(isPlaying: entry.snapshot.isPlaying, size: 36)
             }
             Spacer(minLength: 0)
             Text(entry.snapshot.current?.name ?? "StationConnection")
@@ -47,6 +46,7 @@ struct FavoritesWidgetView: View {
             if let title = entry.snapshot.songTitle {
                 Text(title).font(.caption).foregroundStyle(WidgetTheme.muted).lineLimit(1)
             }
+            PlayStopButtons(size: 30)
         }
     }
 
@@ -54,41 +54,12 @@ struct FavoritesWidgetView: View {
     private var favorites: some View {
         let items = entry.snapshot.favorites
         if items.isEmpty {
-            Text(entry.hasSharedData ? "Marca favoritas con ❤️ en la app" : "Abre la app para ver tus favoritas")
+            Text(entry.hasSharedData ? "Marca favoritas con ❤️ en la app" : "Usa el widget «Mis emisoras» para elegir las tuyas")
                 .font(.caption)
                 .foregroundStyle(WidgetTheme.muted)
                 .multilineTextAlignment(.center)
         } else {
-            Grid(horizontalSpacing: 8, verticalSpacing: 8) {
-                GridRow {
-                    tile(at: 0, in: items)
-                    tile(at: 1, in: items)
-                }
-                GridRow {
-                    tile(at: 2, in: items)
-                    tile(at: 3, in: items)
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func tile(at index: Int, in items: [WidgetSnapshot.Item]) -> some View {
-        if items.indices.contains(index) {
-            let item = items[index]
-            Button(intent: PlayStationIntent(stationID: item.id)) {
-                VStack(spacing: 2) {
-                    WidgetArtwork(item: item, cornerRadius: 8).frame(width: 38)
-                    Text(item.name)
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundStyle(entry.snapshot.current?.id == item.id ? WidgetTheme.accent : WidgetTheme.foreground)
-                        .lineLimit(1)
-                }
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Reproducir \(item.name)")
-        } else {
-            Color.clear.frame(width: 38, height: 50)
+            StationGrid(items: items, currentID: entry.snapshot.current?.id)
         }
     }
 }

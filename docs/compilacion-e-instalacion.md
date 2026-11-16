@@ -90,8 +90,10 @@ sequenceDiagram
 ### Añadir los widgets
 
 1. En la pantalla de inicio, mantén pulsado un espacio vacío → **Editar** → **Añadir widget**.
-2. Busca **StationConnection** y elige "Sonando" (pequeño) o "Favoritas" (mediano).
-3. En el auto (iOS 26+): **Ajustes → General → CarPlay → tu auto → Widgets** y activa "Sonando".
+2. Busca **StationConnection** y elige **"Mi emisora"** (pequeño) o **"Mis emisoras"** (mediano).
+   Con la firma gratuita son los que muestran emisoras ([ADR 0013](adr/0013-widgets-configurables.md)).
+3. Mantén pulsado el widget → **Editar widget** → toca "Emisora" y busca por nombre.
+4. En el auto (iOS 26+): **Ajustes → General → CarPlay → tu auto → Widgets** y añade "Mi emisora".
 
 ## 6. Problemas frecuentes
 

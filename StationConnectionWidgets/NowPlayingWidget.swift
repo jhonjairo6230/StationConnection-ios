@@ -14,7 +14,7 @@ struct NowPlayingWidget: Widget {
             NowPlayingWidgetView(entry: entry)
         }
         .configurationDisplayName("Sonando")
-        .description("La emisora que suena, con un botón para reproducir o detener. También en CarPlay.")
+        .description("La última emisora, con ▶ y ■. También en CarPlay.")
         .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular])
     }
 }
@@ -45,25 +45,21 @@ struct NowPlayingWidgetView: View {
     // MARK: - Pequeño (inicio y CarPlay)
 
     private var small: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .top) {
                 if let item = snapshot.current {
-                    WidgetArtwork(item: item).frame(width: 44)
+                    WidgetArtwork(item: item).frame(width: 40)
                 } else {
-                    Image("AppArtwork").resizable().scaledToFit().frame(width: 44).clipShape(RoundedRectangle(cornerRadius: 10))
+                    Image("AppArtwork").resizable().scaledToFit().frame(width: 40).clipShape(RoundedRectangle(cornerRadius: 10))
                 }
                 Spacer()
-                ToggleButton(isPlaying: snapshot.isPlaying, size: 40)
             }
             Spacer(minLength: 0)
             if let item = snapshot.current {
-                Text(snapshot.isPlaying ? "SONANDO" : "ÚLTIMA")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(WidgetTheme.muted)
                 Text(item.name)
                     .font(.headline)
                     .foregroundStyle(WidgetTheme.foreground)
-                    .lineLimit(2)
+                    .lineLimit(1)
                 Text(detail)
                     .font(.caption)
                     .foregroundStyle(WidgetTheme.muted)
@@ -76,6 +72,7 @@ struct NowPlayingWidgetView: View {
                     .font(.caption)
                     .foregroundStyle(WidgetTheme.muted)
             }
+            PlayStopButtons(size: 32)
         }
         .containerBackground(for: .widget) { WidgetTheme.background }
     }
@@ -106,29 +103,15 @@ struct NowPlayingWidgetView: View {
                     .lineLimit(2)
             }
             Spacer(minLength: 0)
-            Button(intent: TogglePlaybackIntent()) {
-                Image(systemName: snapshot.isPlaying ? "stop.fill" : "play.fill")
+            VStack(spacing: 6) {
+                Button(intent: ResumePlaybackIntent()) { Image(systemName: "play.fill") }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Reproducir la radio")
+                Button(intent: StopPlaybackIntent()) { Image(systemName: "stop.fill") }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Detener la radio")
             }
-            .buttonStyle(.plain)
         }
         .containerBackground(for: .widget) { Color.clear }
-    }
-}
-
-/// Botón ▶/■ redondo de los widgets de inicio.
-struct ToggleButton: View {
-    let isPlaying: Bool
-    let size: CGFloat
-
-    var body: some View {
-        Button(intent: TogglePlaybackIntent()) {
-            Image(systemName: isPlaying ? "stop.fill" : "play.fill")
-                .font(.system(size: size * 0.4, weight: .bold))
-                .foregroundStyle(.white)
-                .frame(width: size, height: size)
-                .background(Circle().fill(WidgetTheme.accent))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(isPlaying ? "Detener la radio" : "Reproducir la radio")
     }
 }

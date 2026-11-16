@@ -26,7 +26,36 @@ struct PlayStationIntent: AudioPlaybackIntent {
     }
 }
 
-/// Botón ▶/■ de un widget: detiene lo que suena o retoma la última emisora.
+/// Botón ▶ de un widget: retoma la última emisora. Si ya suena, no hace nada.
+///
+/// ▶ y ■ son botones separados porque, sin App Group, el widget no sabe si
+/// la radio suena (ver docs/adr/0013-widgets-configurables.md).
+struct ResumePlaybackIntent: AudioPlaybackIntent {
+    static let title: LocalizedStringResource = "Reproducir la radio"
+    static let description = IntentDescription("Vuelve a poner la última emisora.")
+
+    init() {}
+
+    func perform() async throws -> some IntentResult {
+        await WidgetPlaybackBridge.resume()
+        return .result()
+    }
+}
+
+/// Botón ■ de un widget: detiene la radio. Si no suena, no hace nada.
+struct StopPlaybackIntent: AudioPlaybackIntent {
+    static let title: LocalizedStringResource = "Detener la radio"
+    static let description = IntentDescription("Detiene la radio.")
+
+    init() {}
+
+    func perform() async throws -> some IntentResult {
+        await WidgetPlaybackBridge.stop()
+        return .result()
+    }
+}
+
+/// Botón ▶/■ de un widget de un solo botón (pantalla de bloqueo).
 struct TogglePlaybackIntent: AudioPlaybackIntent {
     static let title: LocalizedStringResource = "Reproducir o detener la radio"
     static let description = IntentDescription("Detiene la radio o vuelve a poner la última emisora.")
@@ -48,6 +77,8 @@ struct TogglePlaybackIntent: AudioPlaybackIntent {
 enum WidgetPlaybackBridge {
     static var playHandler: (@MainActor (String) async -> Void)?
     static var toggleHandler: (@MainActor () -> Void)?
+    static var resumeHandler: (@MainActor () -> Void)?
+    static var stopHandler: (@MainActor () -> Void)?
     /// Siri: devuelve `false` si no hay favoritas.
     static var playFavoritesHandler: (@MainActor () -> Bool)?
 
@@ -57,6 +88,14 @@ enum WidgetPlaybackBridge {
 
     static func toggle() {
         toggleHandler?()
+    }
+
+    static func resume() {
+        resumeHandler?()
+    }
+
+    static func stop() {
+        stopHandler?()
     }
 
     static func playFavorites() -> Bool {

@@ -45,6 +45,11 @@ final class PlayerViewModel {
     @ObservationIgnored private var sleepTask: Task<Void, Never>?
     /// Emisora de la que ya se registró la reproducción (una vez por sesión de escucha).
     @ObservationIgnored private var registeredStationID: String?
+    /// Hasta cuándo se ignora un "reproducir" del sistema tras ■ en un widget o Siri.
+    @ObservationIgnored private var remoteResumeBlockedUntil: Date?
+
+    /// Segundos en que se ignora el "reproducir" que iOS manda tras un botón de audio.
+    static let remoteResumeBlock: TimeInterval = 3
 
     init(
         audio: AudioPlayer,
@@ -92,6 +97,7 @@ final class PlayerViewModel {
 
     /// Reproduce `station`. `source` es la lista de donde se eligió (la cola de ⏮/⏭).
     func play(_ station: Station, from source: [Station]? = nil) {
+        remoteResumeBlockedUntil = nil
         queue = PlaybackQueue.resolve(
             for: station,
             source: source,
@@ -109,6 +115,16 @@ final class PlayerViewModel {
         } else {
             play(target, from: source)
         }
+    }
+
+    /// ■ desde un widget o un atajo.
+    ///
+    /// Tras ejecutar un `AudioPlaybackIntent`, iOS puede mandar por su cuenta
+    /// la orden "reproducir" a la app que sonaba: sin esto, la radio se
+    /// detenía y volvía a cargar. Esa orden se ignora unos segundos.
+    func stopFromShortcut() {
+        remoteResumeBlockedUntil = clock().addingTimeInterval(Self.remoteResumeBlock)
+        if isActive { stop() }
     }
 
     func stop() {
@@ -189,16 +205,23 @@ final class PlayerViewModel {
     private func handle(_ command: MediaCommand) {
         switch command {
         case .play:
+            guard !isRemoteResumeBlocked else { return }
             if let station, !isActive { start(station) }
         case .pause:
             if isActive { stop() }
         case .togglePlayPause:
+            if !isActive, isRemoteResumeBlocked { return }
             toggle()
         case .next:
             skip(.next)
         case .previous:
             skip(.previous)
         }
+    }
+
+    private var isRemoteResumeBlocked: Bool {
+        guard let until = remoteResumeBlockedUntil else { return false }
+        return clock() < until
     }
 
     /// Si la cola son las favoritas y el usuario las reordena, ⏮/⏭ siguen el orden nuevo.

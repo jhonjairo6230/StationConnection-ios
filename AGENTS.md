@@ -20,7 +20,9 @@ que aplican).
 - Widgets: la extensión `StationConnectionWidgets/` solo lee la foto
   (`Shared/SharedWidgetStore`); sus botones son `AudioPlaybackIntent` que se
   ejecutan en la app por `WidgetPlaybackBridge`. Lo que use la extensión va en
-  `Shared/` (sin tipos de la app). Ver `docs/adr/0010-widgets.md`.
+  `Shared/` (sin tipos de la app). Los widgets configurables buscan emisoras
+  con `RadioBrowserLookup` (en la extensión) porque la firma gratuita no trae
+  App Group. Ver `docs/adr/0010-widgets.md` y `0013-widgets-configurables.md`.
 - Las implementaciones concretas solo se crean en `App/AppContainer.swift`
   (todo `lazy`). Las falsas para `-uiTesting` viven en `App/UITestingSupport.swift`.
 - `Data` convierte sus errores a `StationError`.
