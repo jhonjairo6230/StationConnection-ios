@@ -104,8 +104,10 @@ StationConnection/
 └── Resources/Assets.xcassets        Ícono, carátula para "Reproduciendo", colores
 
 Shared/                              Lo compilan la app y la extensión de widgets:
-                                     WidgetSnapshot, SharedWidgetStore, intents ▶/■
-StationConnectionWidgets/            Extensión: widgets Sonando y Favoritas
+                                     WidgetSnapshot, SharedWidgetStore, intents ▶ ■,
+                                     StationArtworkText
+StationConnectionWidgets/            Extensión: Mi emisora y Mis emisoras (configurables,
+                                     RadioBrowserLookup), Sonando y Favoritas
 
 StationConnectionTests/
 ├── Doubles/                         Directorio, audio, controles y estática falsos
@@ -310,6 +312,23 @@ sequenceDiagram
 El widget pequeño aparece también en **CarPlay desde iOS 26**. Sin App Group
 (firma gratuita), la app no publica la foto y el widget muestra un texto de
 respaldo, pero sus botones funcionan. Ver [ADR 0010](adr/0010-widgets.md).
+
+Con la firma gratuita no hay App Group. Por eso los widgets **"Mi emisora"** y
+**"Mis emisoras"** se configuran con "Editar widget": la extensión busca las
+emisoras en Radio Browser por su cuenta y no lee nada de la app. Sus botones
+son los mismos intents. Tras ■ desde un widget, `PlayerViewModel` ignora
+3 s el "reproducir" que iOS manda por su cuenta. Ver
+[ADR 0013](adr/0013-widgets-configurables.md).
+
+```mermaid
+flowchart LR
+    edit["Editar widget"] --> query["RadioStationQuery<br/>(extensión)"]
+    query --> rb["Radio Browser"]
+    query --> conf["Emisoras elegidas<br/>(configuración del widget)"]
+    conf --> tile["Mosaico ▶"]
+    tile --> intent["PlayStationIntent(id)"]
+    intent --> app["App: WidgetPlaybackActions.play(id)<br/>(busca la emisora si no la conoce)"]
+```
 
 Siri usa el mismo puente: "Mis favoritas de StationConnection" →
 `PlayFavoritesIntent` → `WidgetPlaybackActions.playFavorites()`. Ver

@@ -25,18 +25,8 @@ extension Station {
     }
 
     /// Iniciales para la carátula sin logo ("La Mega" → "LM").
-    var initials: String {
-        let words = name
-            .components(separatedBy: CharacterSet.alphanumerics.inverted)
-            .filter { !$0.isEmpty }
-        if words.count > 1 { return (String(words[0].prefix(1)) + String(words[1].prefix(1))).uppercased() }
-        return String((words.first ?? "?").prefix(2)).uppercased()
-    }
+    var initials: String { StationArtworkText.initials(for: name) }
 
     /// Índice estable del degradado según el id.
-    var gradientIndex: Int {
-        var hash: UInt32 = 0
-        for scalar in id.unicodeScalars { hash = hash &* 31 &+ scalar.value }
-        return Int(hash % UInt32(Theme.artworkGradients.count))
-    }
+    var gradientIndex: Int { StationArtworkText.gradientIndex(for: id) }
 }

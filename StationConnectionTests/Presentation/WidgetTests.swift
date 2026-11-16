@@ -8,12 +8,16 @@ final class WidgetTests: XCTestCase {
     private var directory: FakeStationDirectory!
     private var library: LibraryViewModel!
     private var suiteName: String!
+    private var now = Date(timeIntervalSince1970: 0)
+    private var controls: FakeMediaControls!
 
     override func setUp() async throws {
         audio = FakeAudioPlayer()
         directory = FakeStationDirectory()
         library = makeLibrary()
         suiteName = "WidgetTests-\(UUID().uuidString)"
+        now = Date(timeIntervalSince1970: 0)
+        controls = FakeMediaControls()
     }
 
     override func tearDown() async throws {
@@ -23,9 +27,19 @@ final class WidgetTests: XCTestCase {
     private func makePlayer() -> PlayerViewModel {
         PlayerViewModel(
             audio: audio,
-            controls: FakeMediaControls(),
+            controls: controls,
             library: library,
-            registerPlay: RegisterPlayUseCase(directory: directory)
+            registerPlay: RegisterPlayUseCase(directory: directory),
+            clock: { [unowned self] in self.now }
+        )
+    }
+
+    private func makeActions(_ player: PlayerViewModel) -> WidgetPlaybackActions {
+        WidgetPlaybackActions(
+            player: player,
+            library: library,
+            getStations: GetStationsUseCase(directory: directory),
+            clock: { [unowned self] in self.now }
         )
     }
 
@@ -124,7 +138,7 @@ final class WidgetTests: XCTestCase {
     func testPlayingAFavoriteUsesTheFavoritesAsQueue() async {
         library = makeLibrary(favorites: makeStations([1, 2, 3]))
         let player = makePlayer()
-        let actions = WidgetPlaybackActions(player: player, library: library, getStations: GetStationsUseCase(directory: directory))
+        let actions = makeActions(player)
 
         await actions.play(stationID: Station.fixture(2).id)
 
@@ -135,7 +149,7 @@ final class WidgetTests: XCTestCase {
     func testPlayingAnUnknownStationAsksTheDirectory() async {
         directory.searchResult = .success([.fixture(9)])
         let player = makePlayer()
-        let actions = WidgetPlaybackActions(player: player, library: library, getStations: GetStationsUseCase(directory: directory))
+        let actions = makeActions(player)
 
         await actions.play(stationID: Station.fixture(9).id)
 
@@ -146,11 +160,12 @@ final class WidgetTests: XCTestCase {
         library = makeLibrary(favorites: [.fixture(5)])
         library.addRecent(.fixture(4))
         let player = makePlayer()
-        let actions = WidgetPlaybackActions(player: player, library: library, getStations: GetStationsUseCase(directory: directory))
+        let actions = makeActions(player)
 
         actions.toggle()
         XCTAssertEqual(player.station, .fixture(4))
 
+        now += 2
         actions.toggle()
         XCTAssertEqual(player.status, .stopped)
     }
@@ -158,7 +173,7 @@ final class WidgetTests: XCTestCase {
     func testToggleWithoutRecentsPlaysTheFirstFavorite() {
         library = makeLibrary(favorites: makeStations([5, 6]))
         let player = makePlayer()
-        let actions = WidgetPlaybackActions(player: player, library: library, getStations: GetStationsUseCase(directory: directory))
+        let actions = makeActions(player)
 
         actions.toggle()
 
@@ -170,7 +185,7 @@ final class WidgetTests: XCTestCase {
     func testSiriPlaysTheFavoritesInOrder() {
         library = makeLibrary(favorites: makeStations([3, 1, 2]))
         let player = makePlayer()
-        let actions = WidgetPlaybackActions(player: player, library: library, getStations: GetStationsUseCase(directory: directory))
+        let actions = makeActions(player)
 
         XCTAssertTrue(actions.playFavorites())
 
@@ -180,9 +195,99 @@ final class WidgetTests: XCTestCase {
 
     func testSiriWithoutFavoritesDoesNothing() {
         let player = makePlayer()
-        let actions = WidgetPlaybackActions(player: player, library: library, getStations: GetStationsUseCase(directory: directory))
+        let actions = makeActions(player)
 
         XCTAssertFalse(actions.playFavorites())
         XCTAssertNil(player.station)
+    }
+
+    // MARK: - ▶ y ■ separados, toques repetidos
+
+    func testRepeatedToggleWithinASecondIsIgnored() {
+        library.addRecent(.fixture(4))
+        let player = makePlayer()
+        let actions = makeActions(player)
+
+        actions.toggle()
+        now += 0.5
+        actions.toggle()
+
+        XCTAssertEqual(player.station, .fixture(4))
+        XCTAssertTrue(player.isActive, "El segundo toque repetido no debe detener")
+    }
+
+    func testResumeDoesNothingWhenAlreadyPlaying() {
+        let player = makePlayer()
+        player.play(.fixture(1))
+        audio.simulate(.playing)
+        let actions = makeActions(player)
+
+        actions.resume()
+
+        XCTAssertEqual(audio.playedURLs.count, 1, "No debe reiniciar la emisora")
+    }
+
+    func testResumeRestartsTheCurrentStationAfterStopping() {
+        let player = makePlayer()
+        player.play(.fixture(1), from: makeStations([1, 2]))
+        player.stop()
+        let actions = makeActions(player)
+
+        actions.resume()
+
+        XCTAssertEqual(player.station, .fixture(1))
+        XCTAssertEqual(player.status, .loading)
+        XCTAssertEqual(player.queue, makeStations([1, 2]))
+    }
+
+    func testPlayingTheStationThatIsAlreadyPlayingDoesNotRestartIt() async {
+        library = makeLibrary(favorites: [.fixture(2)])
+        let player = makePlayer()
+        player.play(.fixture(2))
+        audio.simulate(.playing)
+        let actions = makeActions(player)
+
+        await actions.play(stationID: Station.fixture(2).id)
+
+        XCTAssertEqual(audio.playedURLs.count, 1)
+    }
+
+    func testStopFromAWidgetIgnoresTheSystemPlayCommandThatFollows() {
+        let player = makePlayer()
+        player.play(.fixture(1))
+        audio.simulate(.playing)
+        let actions = makeActions(player)
+
+        actions.stop()
+        controls.simulate(.play)
+        controls.simulate(.togglePlayPause)
+        XCTAssertEqual(player.status, .stopped, "iOS no debe volver a ponerla")
+
+        now += PlayerViewModel.remoteResumeBlock + 1
+        controls.simulate(.play)
+        XCTAssertEqual(player.status, .loading, "Pasado el margen, ▶ del sistema funciona")
+    }
+
+    func testPlayingAgainClearsTheBlock() {
+        let player = makePlayer()
+        player.play(.fixture(1))
+        makeActions(player).stop()
+
+        player.play(.fixture(1))
+        player.stop()
+        controls.simulate(.play)
+
+        XCTAssertEqual(player.status, .loading)
+    }
+
+    // MARK: - Carátula compartida
+
+    func testArtworkTextMatchesTheStationHelpers() {
+        let station = Station.fixture(7, name: "La Mega Estéreo")
+        XCTAssertEqual(StationArtworkText.initials(for: station.name), "LM")
+        XCTAssertEqual(StationArtworkText.initials(for: "Tropicana"), "TR")
+        XCTAssertEqual(StationArtworkText.initials(for: "  "), "?")
+        XCTAssertEqual(station.gradientIndex, StationArtworkText.gradientIndex(for: station.id))
+        XCTAssertTrue((0..<StationArtworkText.gradientCount).contains(station.gradientIndex))
     }
 }

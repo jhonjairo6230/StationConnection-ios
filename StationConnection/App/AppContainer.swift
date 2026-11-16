@@ -83,6 +83,8 @@ final class AppContainer {
         )
         WidgetPlaybackBridge.playHandler = { stationID in await actions.play(stationID: stationID) }
         WidgetPlaybackBridge.toggleHandler = { actions.toggle() }
+        WidgetPlaybackBridge.resumeHandler = { actions.resume() }
+        WidgetPlaybackBridge.stopHandler = { actions.stop() }
         WidgetPlaybackBridge.playFavoritesHandler = { actions.playFavorites() }
         widgetSync.start()
     }
