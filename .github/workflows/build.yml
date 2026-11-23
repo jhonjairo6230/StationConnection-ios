@@ -2,16 +2,14 @@
 # Explicación paso a paso: docs/compilacion-e-instalacion.md
 name: Compilar IPA
 
+# Solo al fusionar en develop o main/master, o a mano (Run workflow) en
+# cualquier rama. Ver docs/adr/0015-compilar-solo-al-fusionar.md
 on:
   push:
     branches:
       - main
+      - master
       - develop
-      - "feature/**"
-      - "release/**"
-      - "hotfix/**"
-      - "backport/**"
-  pull_request:
   workflow_dispatch:
 
 concurrency:

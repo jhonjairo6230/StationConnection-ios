@@ -23,6 +23,7 @@ que aplican a una app de radio (0001–0004 y 0006), y añade los suyos.
 | [0012](0012-frases-de-siri.md) | Frases de Siri que no chocan con la búsqueda de música | Nueva | Aceptada |
 | [0013](0013-widgets-configurables.md) | Widgets configurables que no dependen del App Group | Nueva | Aceptada |
 | [0014](0014-widget-con-estado.md) | Encontrar el App Group de la firma y detectar las pausas del sistema | Nueva | Aceptada |
+| [0015](0015-compilar-solo-al-fusionar.md) | Compilar el IPA solo al fusionar en develop o main | Nueva (cambia los disparadores del 0004) | Aceptada |
 
 ## Cómo añadir un ADR
 
