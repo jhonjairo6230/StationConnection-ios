@@ -30,13 +30,16 @@ struct FavoritesWidgetView: View {
 
     private var nowPlaying: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
+            HStack(alignment: .top) {
                 if let item = entry.snapshot.current {
                     WidgetArtwork(item: item).frame(width: 40)
                 } else {
-                    Image("AppArtwork").resizable().scaledToFit().frame(width: 40).clipShape(RoundedRectangle(cornerRadius: 10))
+                    AppArtworkImage(size: 40)
                 }
-                Spacer()
+                Spacer(minLength: 0)
+                if entry.hasSharedData {
+                    PlaybackToggleButton(isPlaying: entry.snapshot.isPlaying, size: 36)
+                }
             }
             Spacer(minLength: 0)
             Text(entry.snapshot.current?.name ?? "StationConnection")
@@ -46,7 +49,10 @@ struct FavoritesWidgetView: View {
             if let title = entry.snapshot.songTitle {
                 Text(title).font(.caption).foregroundStyle(WidgetTheme.muted).lineLimit(1)
             }
-            PlayStopButtons(size: 30)
+            if !entry.hasSharedData {
+                DiagnosticText(entry.diagnostic)
+                PlayStopButtons(size: 30)
+            }
         }
     }
 
@@ -54,7 +60,9 @@ struct FavoritesWidgetView: View {
     private var favorites: some View {
         let items = entry.snapshot.favorites
         if items.isEmpty {
-            Text(entry.hasSharedData ? "Marca favoritas con ❤️ en la app" : "Usa el widget «Mis emisoras» para elegir las tuyas")
+            Text(entry.hasSharedData
+                ? "Marca favoritas con ❤️ en la app"
+                : "Sin acceso a tus favoritas. Añade el widget «Mis emisoras» y elígelas con Editar widget.")
                 .font(.caption)
                 .foregroundStyle(WidgetTheme.muted)
                 .multilineTextAlignment(.center)

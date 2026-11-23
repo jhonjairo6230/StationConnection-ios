@@ -21,8 +21,9 @@ flowchart LR
 ## 2. Qué hace el workflow
 
 Archivo: [`.github/workflows/build.yml`](../.github/workflows/build.yml).
-Se ejecuta en cada `push` a las ramas de Git Flow, en cada pull request y a
-mano (**Actions → Compilar IPA → Run workflow**).
+Se ejecuta **al fusionar** en `develop` o `main`/`master` y a mano en
+cualquier rama (**Actions → Compilar IPA → Run workflow** → elegir la rama).
+No corre en cada push ni en los PR ([ADR 0015](adr/0015-compilar-solo-al-fusionar.md)).
 
 ```mermaid
 sequenceDiagram

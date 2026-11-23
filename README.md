@@ -43,7 +43,8 @@ Requiere iOS 17 o posterior.
 ## Instalar en tu iPhone
 
 1. Ve a [Actions → Compilar IPA](https://github.com/jhonjairo6230/StationConnection-ios/actions/workflows/build.yml)
-   y descarga **StationConnection-ipa** de la última ejecución en verde.
+   y descarga **StationConnection-ipa** de la última ejecución en verde
+   (se genera al fusionar en `develop` o `main`).
 2. Fírmalo e instálalo con [Sideloadly](https://sideloadly.io) desde Windows.
 
 Guía completa: [docs/compilacion-e-instalacion.md](docs/compilacion-e-instalacion.md).

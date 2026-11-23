@@ -41,9 +41,12 @@ que aplican).
 
 ## Comprobar un cambio
 
-Push a la rama y mirar el workflow **Compilar IPA**: ejecuta las pruebas en
-un simulador de iPhone y publica `StationConnection-unsigned.ipa`. Si falla,
-el paso "Errores de compilación o pruebas" resume el error.
+El workflow **Compilar IPA** solo corre al fusionar en `develop` o
+`main`/`master`. Para probar una rama, lánzalo a mano en ella
+(`workflow_dispatch`, "Run workflow") **antes de abrir o fusionar el PR**.
+Ejecuta las pruebas en un simulador de iPhone y publica
+`StationConnection-unsigned.ipa`. Si falla, el paso "Errores de compilación o
+pruebas" resume el error. Ver `docs/adr/0015-compilar-solo-al-fusionar.md`.
 
 ## Documentación
 

@@ -330,6 +330,13 @@ flowchart LR
     intent --> app["App: WidgetPlaybackActions.play(id)<br/>(busca la emisora si no la conoce)"]
 ```
 
+`SharedWidgetStore.live()` busca el App Group también en el perfil de firma
+incrustado (Sideloadly puede renombrarlo). Con App Group, el widget muestra la
+emisora y un único botón ▶/■; sin él, ▶ y ■ separados y el motivo en letra
+pequeña. Si iOS pausa el audio por su cuenta (CarPlay, Siri, una llamada),
+`AVFoundationAudioPlayer` avisa `.interrupted` y la emisora queda detenida.
+Ver [ADR 0014](adr/0014-widget-con-estado.md).
+
 Siri usa el mismo puente: "Mis favoritas de StationConnection" →
 `PlayFavoritesIntent` → `WidgetPlaybackActions.playFavorites()`. Ver
 [ADR 0011](adr/0011-siri-favoritas.md) y [ADR 0012](adr/0012-frases-de-siri.md).

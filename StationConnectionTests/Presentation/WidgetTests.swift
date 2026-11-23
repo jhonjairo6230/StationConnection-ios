@@ -290,4 +290,53 @@ final class WidgetTests: XCTestCase {
         XCTAssertEqual(station.gradientIndex, StationArtworkText.gradientIndex(for: station.id))
         XCTAssertTrue((0..<StationArtworkText.gradientCount).contains(station.gradientIndex))
     }
+
+    // MARK: - App Group del perfil de firma
+
+    func testProvisionedGroupsAreReadFromTheEmbeddedProfile() {
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0"><dict>
+        <key>Entitlements</key><dict>
+        <key>com.apple.security.application-groups</key>
+        <array><string>group.com.jhonjairo6230.stationconnection.ABCDE12345</string></array>
+        </dict></dict></plist>
+        """
+        // El perfil real es un plist envuelto en bytes de firma (CMS).
+        let profile = Data([0x30, 0x82, 0x00, 0xFF]) + Data(xml.utf8) + Data([0x00, 0xA0, 0x82])
+
+        XCTAssertEqual(
+            SharedWidgetStore.provisionedGroups(in: profile),
+            ["group.com.jhonjairo6230.stationconnection.ABCDE12345"]
+        )
+    }
+
+    func testProfileWithoutGroupsOrUnreadableGivesNone() {
+        XCTAssertEqual(SharedWidgetStore.provisionedGroups(in: Data("basura".utf8)), [])
+        let noGroups = Data("<?xml version=\"1.0\"?><plist version=\"1.0\"><dict><key>Entitlements</key><dict/></dict></plist>".utf8)
+        XCTAssertEqual(SharedWidgetStore.provisionedGroups(in: noGroups), [])
+    }
+
+    func testCandidateGroupsTryTheProjectGroupThenRelatedOnesInAStableOrder() {
+        let groups = SharedWidgetStore.candidateGroups(provisioned: [
+            "group.otra.app",
+            "group.com.jhonjairo6230.stationconnection.ZZZ",
+            SharedWidgetStore.appGroup,
+            "group.com.jhonjairo6230.StationConnection.AAA",
+        ])
+
+        XCTAssertEqual(groups, [
+            SharedWidgetStore.appGroup,
+            "group.com.jhonjairo6230.StationConnection.AAA",
+            "group.com.jhonjairo6230.stationconnection.ZZZ",
+            "group.otra.app",
+        ])
+    }
+
+    func testStoreWithoutDefaultsExplainsWhy() {
+        XCTAssertEqual(SharedWidgetStore(defaults: nil).diagnostic, "Sin App Group")
+        XCTAssertEqual(SharedWidgetStore(defaults: nil, diagnostic: "La firma no trae App Group").diagnostic, "La firma no trae App Group")
+        XCTAssertNil(makeStore().diagnostic)
+    }
 }

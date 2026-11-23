@@ -6,6 +6,20 @@ import WidgetKit
 struct ConfiguredEntry: TimelineEntry {
     let date: Date
     let items: [WidgetSnapshot.Item]
+    /// `true` si hay App Group y el widget sabe qué suena.
+    var knowsPlayback = false
+    /// La emisora que suena ahora (solo con App Group).
+    var playingID: String?
+
+    init(date: Date, items: [WidgetSnapshot.Item], store: SharedWidgetStore? = nil) {
+        self.date = date
+        self.items = items
+        if let store, store.isAvailable {
+            let snapshot = store.load() ?? .empty
+            knowsPlayback = true
+            playingID = snapshot.isPlaying ? snapshot.current?.id : nil
+        }
+    }
 }
 
 /// Widget pequeño "Mi emisora": la emisora elegida con ▶ y ■.
@@ -47,11 +61,12 @@ struct OneStationProvider: AppIntentTimelineProvider {
 
     func snapshot(for configuration: OneStationIntent, in context: Context) async -> ConfiguredEntry {
         let items = configuration.station.map { [$0.item] } ?? []
-        return context.isPreview && items.isEmpty ? placeholder(in: context) : ConfiguredEntry(date: Date(), items: items)
+        return context.isPreview && items.isEmpty ? placeholder(in: context) : ConfiguredEntry(date: Date(), items: items, store: .live())
     }
 
     func timeline(for configuration: OneStationIntent, in context: Context) async -> Timeline<ConfiguredEntry> {
-        Timeline(entries: [ConfiguredEntry(date: Date(), items: configuration.station.map { [$0.item] } ?? [])], policy: .never)
+        let items = configuration.station.map { [$0.item] } ?? []
+        return Timeline(entries: [ConfiguredEntry(date: Date(), items: items, store: .live())], policy: .never)
     }
 }
 
@@ -62,11 +77,11 @@ struct FourStationsProvider: AppIntentTimelineProvider {
 
     func snapshot(for configuration: FourStationsIntent, in context: Context) async -> ConfiguredEntry {
         let items = configuration.stations.map(\.item)
-        return context.isPreview && items.isEmpty ? placeholder(in: context) : ConfiguredEntry(date: Date(), items: items)
+        return context.isPreview && items.isEmpty ? placeholder(in: context) : ConfiguredEntry(date: Date(), items: items, store: .live())
     }
 
     func timeline(for configuration: FourStationsIntent, in context: Context) async -> Timeline<ConfiguredEntry> {
-        Timeline(entries: [ConfiguredEntry(date: Date(), items: configuration.stations.map(\.item))], policy: .never)
+        Timeline(entries: [ConfiguredEntry(date: Date(), items: configuration.stations.map(\.item), store: .live())], policy: .never)
     }
 }
 
@@ -92,15 +107,25 @@ struct OneStationWidgetView: View {
                 .accessibilityLabel("Reproducir \(item.name)")
                 Spacer(minLength: 0)
                 HStack(spacing: 8) {
-                    Button(intent: PlayStationIntent(stationID: item.id)) {
-                        RoundIcon(symbol: "play.fill", size: 34, filled: true)
+                    if entry.knowsPlayback, entry.playingID == item.id {
+                        // Suena esta emisora: un solo botón ■.
+                        Button(intent: StopPlaybackIntent()) {
+                            RoundIcon(symbol: "stop.fill", size: 34, filled: true)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Detener \(item.name)")
+                    } else {
+                        Button(intent: PlayStationIntent(stationID: item.id)) {
+                            RoundIcon(symbol: "play.fill", size: 34, filled: true)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Reproducir \(item.name)")
+                        // Sin App Group no se sabe si suena: ■ siempre a mano.
+                        if !entry.knowsPlayback { StopButton() }
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Reproducir \(item.name)")
-                    StopButton()
                 }
             } else {
-                Image("AppArtwork").resizable().scaledToFit().frame(width: 40).clipShape(RoundedRectangle(cornerRadius: 10))
+                AppArtworkImage(size: 40)
                 Spacer(minLength: 0)
                 Text("Elige una emisora")
                     .font(.headline)
@@ -136,7 +161,7 @@ struct FourStationsWidgetView: View {
                         .foregroundStyle(WidgetTheme.muted)
                         .multilineTextAlignment(.center)
                 } else {
-                    StationGrid(items: entry.items)
+                    StationGrid(items: entry.items, currentID: entry.playingID)
                 }
             }
             .frame(maxWidth: .infinity)

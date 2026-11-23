@@ -6,6 +6,8 @@ struct StationEntry: TimelineEntry {
     let snapshot: WidgetSnapshot
     /// `false` si la firma no trae el App Group: el widget muestra su modo de respaldo.
     let hasSharedData: Bool
+    /// Por qué no hay datos compartidos (se muestra en pequeño en el modo de respaldo).
+    var diagnostic: String?
 
     static let preview = StationEntry(
         date: Date(),
@@ -41,6 +43,6 @@ struct SnapshotProvider: TimelineProvider {
     }
 
     private func currentEntry() -> StationEntry {
-        StationEntry(date: Date(), snapshot: store.load() ?? .empty, hasSharedData: store.isAvailable)
+        StationEntry(date: Date(), snapshot: store.load() ?? .empty, hasSharedData: store.isAvailable, diagnostic: store.diagnostic)
     }
 }
