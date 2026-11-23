@@ -4,6 +4,10 @@ import Foundation
 enum AudioPlayerState: Equatable {
     case loading
     case playing
+    /// El sistema pausó el audio por su cuenta (CarPlay al conectar, Siri,
+    /// una llamada, otra app). Sin esto la app creía que seguía sonando y ▶
+    /// no hacía nada.
+    case interrupted
     case failed(String)
 }
 

@@ -195,4 +195,34 @@ final class PlayerViewModelTests: XCTestCase {
         player.setSleepTimer(after: nil)
         XCTAssertNil(player.sleepEndsAt)
     }
+
+    // MARK: - Interrupciones del sistema
+
+    func testASystemPauseLeavesTheStationStoppedSoPlayWorksAgain() {
+        let player = makePlayer()
+        player.play(.fixture(1))
+        audio.simulate(.playing)
+
+        audio.simulate(.interrupted)
+
+        XCTAssertEqual(player.status, .stopped)
+        XCTAssertEqual(player.station, .fixture(1))
+        XCTAssertEqual(audio.stopCount, 1)
+        XCTAssertEqual(controls.lastInfo?.isPlaying, false)
+
+        player.toggle()
+        XCTAssertEqual(player.status, .loading, "▶ vuelve a poner la emisora en directo")
+        XCTAssertEqual(audio.playedURLs.count, 2)
+    }
+
+    func testAnInterruptionWhenAlreadyStoppedIsIgnored() {
+        let player = makePlayer()
+        player.play(.fixture(1))
+        player.stop()
+
+        audio.simulate(.interrupted)
+
+        XCTAssertEqual(player.status, .stopped)
+        XCTAssertEqual(audio.stopCount, 1)
+    }
 }

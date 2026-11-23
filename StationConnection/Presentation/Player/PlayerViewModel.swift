@@ -188,6 +188,11 @@ final class PlayerViewModel {
                 let register = registerPlay
                 Task { await register.execute(station) }
             }
+        case .interrupted:
+            // Queda detenida: ▶ (app, widget, volante) la vuelve a poner en directo.
+            guard isActive else { return }
+            audio.stop()
+            status = .stopped
         case let .failed(message):
             status = .failed(message)
             cancelSleepTimer()

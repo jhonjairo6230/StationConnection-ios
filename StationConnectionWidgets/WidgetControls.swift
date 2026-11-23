@@ -96,3 +96,55 @@ struct StationGrid: View {
         }
     }
 }
+
+/// Un solo botón que cambia entre ▶ y ■ según lo que suena (solo con App Group).
+struct PlaybackToggleButton: View {
+    let isPlaying: Bool
+    var size: CGFloat = 40
+
+    var body: some View {
+        if isPlaying {
+            Button(intent: StopPlaybackIntent()) {
+                RoundIcon(symbol: "stop.fill", size: size, filled: true)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Detener la radio")
+        } else {
+            Button(intent: ResumePlaybackIntent()) {
+                RoundIcon(symbol: "play.fill", size: size, filled: true)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Reproducir la radio")
+        }
+    }
+}
+
+/// El ícono de la app como carátula cuando no hay emisora.
+struct AppArtworkImage: View {
+    var size: CGFloat = 40
+
+    var body: some View {
+        Image("AppArtwork")
+            .resizable()
+            .scaledToFit()
+            .frame(width: size)
+            .clipShape(RoundedRectangle(cornerRadius: size / 4, style: .continuous))
+    }
+}
+
+/// Línea pequeña con el motivo del modo de respaldo ("La firma no trae App
+/// Group"…): ayuda a saber qué pasa sin un Mac a mano.
+struct DiagnosticText: View {
+    let text: String?
+
+    init(_ text: String?) { self.text = text }
+
+    var body: some View {
+        if let text {
+            Text(text)
+                .font(.system(size: 9))
+                .foregroundStyle(WidgetTheme.muted)
+                .lineLimit(2)
+        }
+    }
+}

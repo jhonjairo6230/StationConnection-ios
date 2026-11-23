@@ -26,9 +26,8 @@ final class AVFoundationAudioPlayer: NSObject, AudioPlayer {
 
     override init() {
         super.init()
-        timeControlObservation = player.observe(\.timeControlStatus, options: [.new]) { [weak self] player, _ in
-            let status = player.timeControlStatus
-            Task { @MainActor in self?.timeControlStatusChanged(status) }
+        timeControlObservation = player.observe(\.timeControlStatus, options: [.new]) { [weak self] _, _ in
+            Task { @MainActor in self?.timeControlStatusChanged() }
         }
     }
 
@@ -58,12 +57,14 @@ final class AVFoundationAudioPlayer: NSObject, AudioPlayer {
         metadataOutput = nil
     }
 
-    private func timeControlStatusChanged(_ status: AVPlayer.TimeControlStatus) {
+    /// Lee el estado **actual** (no el del aviso): un aviso viejo de "pausado"
+    /// que llega después de cambiar de emisora no debe contar como interrupción.
+    private func timeControlStatusChanged() {
         guard player.currentItem != nil else { return } // detenido a propósito
-        switch status {
+        switch player.timeControlStatus {
         case .playing: onStateChange?(.playing)
         case .waitingToPlayAtSpecifiedRate: onStateChange?(.loading)
-        case .paused: break
+        case .paused: onStateChange?(.interrupted)
         @unknown default: break
         }
     }
